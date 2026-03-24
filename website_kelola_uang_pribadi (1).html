@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Keuangan Pribadi</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    input, button { padding: 8px; margin: 5px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+  </style>
+</head>
+<body>
+
+<div id="login">
+  <h2>Login</h2>
+  <input type="text" id="username" placeholder="Username">
+  <input type="password" id="password" placeholder="Password">
+  <button onclick="login()">Masuk</button>
+</div>
+
+<div id="app" style="display:none;">
+  <h2>Catatan Keuangan</h2>
+
+  <input type="date" id="tanggal">
+  <input type="text" id="keterangan" placeholder="Keterangan">
+  <input type="number" id="jumlah" placeholder="Jumlah">
+  <button onclick="tambahData()">Tambah</button>
+
+  <h3>Total: Rp <span id="total">0</span></h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Tanggal</th>
+        <th>Keterangan</th>
+        <th>Jumlah</th>
+        <th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody id="tabel"></tbody>
+  </table>
+</div>
+
+<script>
+const USER = "admin";
+const PASS = "12345";
+
+let data = JSON.parse(localStorage.getItem("data")) || [];
+
+function login() {
+  const u = document.getElementById("username").value;
+  const p = document.getElementById("password").value;
+
+  if (u === USER && p === PASS) {
+    document.getElementById("login").style.display = "none";
+    document.getElementById("app").style.display = "block";
+    render();
+  } else {
+    alert("Login gagal");
+  }
+}
+
+function tambahData() {
+  const t = document.getElementById("tanggal").value;
+  const k = document.getElementById("keterangan").value;
+  const j = parseInt(document.getElementById("jumlah").value);
+
+  if (!t || !k || !j) {
+    alert("Isi semua!");
+    return;
+  }
+
+  data.push({ t, k, j });
+  save();
+  render();
+}
+
+function hapusData(index) {
+  if (confirm("Yakin mau hapus data?")) {
+    data.splice(index, 1);
+    save();
+    render();
+  }
+}
+
+function editData(index) {
+  const item = data[index];
+
+  document.getElementById("tanggal").value = item.t;
+  document.getElementById("keterangan").value = item.k;
+  document.getElementById("jumlah").value = item.j;
+
+  // hapus data lama, nanti disimpan ulang
+  data.splice(index, 1);
+  save();
+  render();
+}
+
+function save() {
+  localStorage.setItem("data", JSON.stringify(data));
+}
+
+function render() {
+  let total = 0;
+  let html = "";
+
+  data.forEach((d, i) => {
+    total += d.j;
+    html += `<tr>
+      <td>${d.t}</td>
+      <td>${d.k}</td>
+      <td>${d.j}</td>
+      <td>
+        <button onclick="editData(${i})">Edit</button>
+        <button onclick="hapusData(${i})">Hapus</button>
+      </td>
+    </tr>`;
+  });
+
+  document.getElementById("tabel").innerHTML = html;
+  document.getElementById("total").innerText = total.toLocaleString();
+}
+</script>
+
+</body>
+</html>
